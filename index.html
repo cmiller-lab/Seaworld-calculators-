@@ -222,7 +222,7 @@ input.invalid{border-color:var(--error);background:var(--errorbg)}
 <div class="card">
 <h2>CYA Dosing Inputs</h2>
 <div class="card-body">
-<div class="field"><label for="cyaPool">Body of Water</label><select id="cyaPool"><option value="0" selected>501 — Cutback Cove</option>
+<div class="field"><label for="cyaPool">Body of Water</label><select id="cyaPool" onchange="updateCYA()" oninput="updateCYA()"><option value="0" selected>501 — Cutback Cove</option>
 <option value="1">502 — Big Surf Shores</option>
 <option value="2">503 — Omaka Rocka</option>
 <option value="3">504 — Katas Kookaburra</option>
@@ -248,7 +248,7 @@ input.invalid{border-color:var(--error);background:var(--errorbg)}
 <option value="23">Freshwater Oasis</option></select></div>
 <div class="field">
 <label for="currentCYA">Current CYA (ppm)</label>
-<input id="currentCYA" type="number" min="0" max="200" step="0.1" value="7.0" inputmode="decimal">
+<input id="currentCYA" type="number" oninput="updateCYA()" onchange="updateCYA()" min="0" max="200" step="0.1" value="7.0" inputmode="decimal">
 <div class="help">Supported calculation range: 0–200 ppm</div>
 <div class="error" id="cyaError">Enter a CYA value between 0 and 200 ppm.</div>
 </div>
@@ -444,7 +444,7 @@ function clearInvalidCYA(){
   document.getElementById('cyaResult').classList.remove('invalid');
 }
 
-function updateCYA(){
+window.updateCYA=function(){
   const p=selectedPool('cyaPool');
   const raw=document.getElementById('currentCYA').value.trim();
   const current=parseFloat(raw);
@@ -493,7 +493,7 @@ function updateCYA(){
     info.textContent='CYA is below the 14 ppm goal. Dose shown will raise the pool to the target.';
     info.classList.add('show');
   }
-}
+};
 
 ['sodaPool','currentPH'].forEach(id=>{
   const el=document.getElementById(id);
@@ -505,13 +505,39 @@ function updateCYA(){
   el.addEventListener('change',updateFC);
   el.addEventListener('input',updateFC);
 });
+['cyaPool','currentCYA'].forEach(id=>{
+  const el=document.getElementById(id);
+  el.addEventListener('change',updateCYA);
+  el.addEventListener('input',updateCYA);
+});
 
-setInterval(function(){updateSoda();updateFC();},500);
+let lastCyaPool=-1;
+let lastCyaValue='';
+setInterval(function(){
+  updateSoda();
+  updateFC();
+
+  const cyaPool=document.getElementById('cyaPool');
+  const cyaInput=document.getElementById('currentCYA');
+  if(cyaPool.selectedIndex!==lastCyaPool || cyaInput.value!==lastCyaValue){
+    updateCYA();
+    lastCyaPool=cyaPool.selectedIndex;
+    lastCyaValue=cyaInput.value;
+  }
+},250);
+
+document.addEventListener('visibilitychange',function(){
+  if(!document.hidden) updateCYA();
+});
+window.addEventListener('focus',updateCYA);
+window.addEventListener('pageshow',updateCYA);
 
 const saved=localStorage.getItem('poolToolsTab');
 if(saved==='fc')showTab('fc');
+if(saved==='cya')showTab('cya');
 updateSoda();
 updateFC();
+updateCYA();
 
 if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
   window.addEventListener('load',function(){

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'seaworld-dosage-v8';
+const CACHE_NAME = 'seaworld-dosage-v9';
 const ASSETS = [
   './',
   './index.html',
