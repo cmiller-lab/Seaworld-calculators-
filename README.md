@@ -1,10 +1,15 @@
-# SeaWorld Dosage Calculators PWA v9
+# SeaWorld Dosage Calculators PWA v10
 
-Fixes:
-- CYA body-of-water changes now refresh volume and dose.
-- Current CYA input changes now refresh dose and alerts.
-- Added standard change/input listeners, inline handlers, and an iOS polling fallback.
-- Restores the selected CYA tab after reopening.
-- Cache updated to seaworld-dosage-v9.
+Key fixes:
+- Uses the current CYA selector's selectedIndex directly.
+- CYA calculations refresh on change, input, blur, keyup, touchend, focus, pageshow, and polling.
+- Current CYA and selected pool persist in localStorage.
+- Visible footer shows Build v10.
+- Service worker uses network-first loading for HTML to prevent stale calculator code.
+- Cache name updated to seaworld-dosage-v10.
 
-Replace the existing GitHub repository root files with the files in this package.
+After uploading:
+1. Open the GitHub Pages URL in Safari.
+2. Confirm the footer says Build v10.
+3. Refresh once if needed.
+4. Remove and re-add the Home Screen shortcut if it still shows an older build.

@@ -284,7 +284,7 @@ input.invalid{border-color:var(--error);background:var(--errorbg)}
 <div class="note"><strong>Dosing basis:</strong> Pure cyanuric acid is calculated at approximately 0.0833 lb per 10,000 gallons for each 1 ppm increase. Product purity and application method may require adjustment.</div>
 </section>
 
-<div class="footer">Offline-capable PWA • Add to Home Screen from Safari</div>
+<div class="footer">Offline-capable PWA • Build v10 • Add to Home Screen from Safari</div>
 </div>
 
 <script>
@@ -445,7 +445,10 @@ function clearInvalidCYA(){
 }
 
 window.updateCYA=function(){
-  const p=selectedPool('cyaPool');
+  const cyaSelect=document.getElementById('cyaPool');
+  let cyaIndex=cyaSelect.selectedIndex;
+  if(cyaIndex<0 || !pools[cyaIndex]) cyaIndex=0;
+  const p=pools[cyaIndex];
   const raw=document.getElementById('currentCYA').value.trim();
   const current=parseFloat(raw);
   const goal=14.0;
@@ -478,6 +481,8 @@ window.updateCYA=function(){
   document.getElementById('cyaNeededTile').textContent=increase.toFixed(1)+' ppm';
   document.getElementById('cya25').textContent=(dose*.25).toLocaleString(undefined,{minimumFractionDigits:1,maximumFractionDigits:1})+' lb';
   document.getElementById('cyaBags').textContent=(dose/50).toFixed(2);
+  localStorage.setItem('cyaPoolIndex',String(cyaIndex));
+  localStorage.setItem('currentCYA',raw);
   document.getElementById('cyaFormula').textContent='Dose = '+p.volume.toLocaleString()+' ÷ 120,000 × ('+goal.toFixed(1)+' − '+current.toFixed(1)+') = '+dose.toFixed(2)+' lb';
 
   if(current<=7){
@@ -507,8 +512,9 @@ window.updateCYA=function(){
 });
 ['cyaPool','currentCYA'].forEach(id=>{
   const el=document.getElementById(id);
-  el.addEventListener('change',updateCYA);
-  el.addEventListener('input',updateCYA);
+  ['change','input','blur','keyup','touchend'].forEach(evt=>{
+    el.addEventListener(evt,updateCYA);
+  });
 });
 
 let lastCyaPool=-1;
@@ -532,6 +538,15 @@ document.addEventListener('visibilitychange',function(){
 window.addEventListener('focus',updateCYA);
 window.addEventListener('pageshow',updateCYA);
 
+const savedCyaPool=parseInt(localStorage.getItem('cyaPoolIndex'),10);
+if(Number.isFinite(savedCyaPool) && pools[savedCyaPool]){
+  document.getElementById('cyaPool').selectedIndex=savedCyaPool;
+}
+const savedCyaValue=localStorage.getItem('currentCYA');
+if(savedCyaValue!==null && savedCyaValue!==''){
+  document.getElementById('currentCYA').value=savedCyaValue;
+}
+
 const saved=localStorage.getItem('poolToolsTab');
 if(saved==='fc')showTab('fc');
 if(saved==='cya')showTab('cya');
@@ -541,7 +556,9 @@ updateCYA();
 
 if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('./service-worker.js').catch(function(){});
+    navigator.serviceWorker.register('./service-worker.js?build=v10',{updateViaCache:'none'})
+      .then(function(reg){ return reg.update(); })
+      .catch(function(){});
   });
 }
 })();
